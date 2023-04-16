@@ -1,0 +1,65 @@
+---
+title: "NYPD"
+output:
+  pdf_document: default
+  html_document: default
+date: "2023-04-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Import libraries
+
+```{r libraries}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+## Import data
+
+Import NYPD shooting data from csv
+
+```{r summary}
+NYPD <- read_csv("https://data.cityofnewyork.us/api/views/833y-fsy8/rows.csv?accessType=DOWNLOAD")
+summary(NYPD)
+```
+## Analysis data
+
+Analysis NYPD shooting data on ages and race
+
+``` {r analysis}
+grouped_data <- NYPD %>%
+  group_by(VIC_RACE) %>%
+  select(VIC_SEX, VIC_RACE, VIC_AGE_GROUP) %>%
+  summarise(total_count=n(),
+            .groups = 'drop')
+
+ggplot(data = grouped_data, aes(x="", y=total_count, fill=VIC_RACE)) +
+  geom_bar(stat = "identity") +
+  coord_polar("y")
+
+grouped_data <- NYPD %>%
+  group_by(VIC_AGE_GROUP) %>%
+  select(VIC_SEX, VIC_RACE, VIC_AGE_GROUP) %>%
+  summarise(total_count=n(),
+            .groups = 'drop')
+ggplot(data = grouped_data, aes(x=VIC_AGE_GROUP, y=total_count, fill=VIC_AGE_GROUP)) +
+  geom_bar(stat = "identity")
+```
+
+## Model
+
+A model for predict
+
+``` {r model}
+mod<-lm(STATISTICAL_MURDER_FLAG~PRECINCT, data=NYPD)
+predicted_data = NYPD %>% 
+  mutate(pred=predict(mod))
+```
+
+## Bias
+
+It seems race and sex are main bias in the dataset, because there are lots of data unbalanced issue.  
